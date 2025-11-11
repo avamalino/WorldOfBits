@@ -1,6 +1,6 @@
 // @deno-types="npm:@types/leaflet"
-import leaflet from "leaflet";
-
+//import leaflet from "leaflet";
+import * as leaflet from "https://esm.sh/leaflet@1.9.4";
 // Style sheets
 import "leaflet/dist/leaflet.css"; // supporting style for Leaflet
 import "./style.css"; // student-controlled page style
