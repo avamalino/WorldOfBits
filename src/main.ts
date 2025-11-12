@@ -62,43 +62,80 @@ leaflet.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 map.setMaxBounds(map.getBounds());
 
-
 //using a miku png from https://ena.our-dogs.info/facts-pin.html
 const mikuIcon = leaflet.icon({
   iconUrl: miku,
   iconSize: [56, 56], // size of the icon
-  iconAnchor: [16, 32], // point of the icon which will correspond to marker's location
+  iconAnchor: [16, 16], // point of the icon which will correspond to marker's location
   popupAnchor: [0, -32], // point from which the popup should open relative to the iconAnchor
 });
 
+interface Cache {
+  pos: [number, number]; //x,y
+  value: number;
+  rect: leaflet.Rectangle;
+  label: leaflet.Marker;
+}
+
+const caches: Cache[] = [];
+
+let playerHolding: number = 0;
+let selectedCache: [number, number] | null = null; //x,y of the current cache
+
+const origin = ORIGIN_POS;
 function spawnCache(x: number, y: number) {
-  const origin = ORIGIN_POS;
   const bounds = leaflet.latLngBounds([
     [origin.lat + x * TILE_DEGREES, origin.lng + y * TILE_DEGREES],
     [origin.lat + (x + 1) * TILE_DEGREES, origin.lng + (y + 1) * TILE_DEGREES],
   ]);
+  const center = bounds.getCenter();
+  const value = 1 + Math.floor(luck([x, y].toString()) * 100) % 2; //get either #1 or 2
 
-  const rect = leaflet.rectangle(bounds);
+  const rect = leaflet.rectangle(bounds, { color: "blue", fillOpacity: 0.5 });
+  const label = leaflet.marker(center, {
+    icon: leaflet.divIcon({
+      className: "label",
+      html: String(value), //get either number 1 or 2
+      iconSize: [30, 12],
+      iconAnchor: [15, 6],
+    }),
+  });
+
   rect.addTo(map);
+  label.addTo(map);
 
-  rect.bindPopup(() => {
-    let pointValue = Math.floor(luck([x, y, "initialValue"].toString()) * 100);
+  const cache: Cache = { pos: [x, y], value, rect, label };
+  caches.push(cache);
 
-    const popupDiv = document.createElement("div");
-    popupDiv.innerHTML = `
-      <div>There is a cache here at "${x},${y}". It has value <span id ="value">${pointValue}</span?.</div>
-      <button id="poke">poke</button>`;
+  rect.on("click", () => {
+    const cache = caches.find((c) => c.pos[0] === x && c.pos[1] === y);
+    if (!cache) return;
+    if (playerHolding === 0) {
+      playerHolding = cache.value;
+      cache.value = 0;
+    } else {
+      if (cache.value === 0) {
+        cache.value = playerHolding;
+        playerHolding = 0;
+      } else if (cache.value != playerHolding) {
+        alert("Non-pair numbers cannot be combined");
+      } else {
+        cache.value += playerHolding;
+        playerHolding = 0;
+      }
+    }
 
-    popupDiv
-    .querySelector<HTMLButtonElement>("#poke")!
-    .addEventListener("click", () => {
-      pointValue = Math.floor(luck([x, y, Date.now().toString()].toString()) * 100);
-      const valueSpan = popupDiv.querySelector<HTMLSpanElement>("#value")!;
-      valueSpan.textContent = pointValue.toString();
-    });
+    cache.label.setIcon(
+      leaflet.divIcon({
+        className: "label",
+        html: String(cache.value),
+        iconSize: [30, 12],
+        iconAnchor: [15, 6],
+      }),
+    );
 
-    return popupDiv;
-  })
+    statusDiv.innerHTML = `Points: ${playerHolding}`;
+  });
 }
 
 for (let i = -GAME_SIZE; i < GAME_SIZE; i++) {
@@ -108,31 +145,36 @@ for (let i = -GAME_SIZE; i < GAME_SIZE; i++) {
     }
   }
 }
+
 //Adding a marker to the map at the user's position
-leaflet.marker([userX, userY], { icon: mikuIcon }).addTo(map);
-//
-////wasd keys to move
-//
-//document.addEventListener("keydown", (event) => {
-//  const stepSize = TILE_DEGREES;
-//  switch (event.key) {
-//    case "w":
-//      userX += stepSize;
-//      break;
-//    case "a":
-//      userY -= stepSize;
-//      break;
-//    case "s":
-//      userX -= stepSize;
-//      break;
-//    case "d":
-//      userY += stepSize;
-//      break;
-//    default:
-//      return; // Ignore other keys
-//  }
-//  // Update marker position
-//  leaflet.marker([userX, userY], { icon: mikuIcon }).addTo(map);
-//  // Center map on new position
-//  map.setView([userX, userY], GAMEPLAY_ZOOM_LEVEL);
-//});
+let playerMarker = leaflet.marker([userX, userY], { icon: mikuIcon }).addTo(
+  map,
+);
+
+let playerPoints = 0;
+statusDiv.innerHTML = `Points: ${playerPoints}`;
+
+//wasd keys to move
+document.addEventListener("keydown", (event) => {
+  const stepSize = TILE_DEGREES;
+  switch (event.key) {
+    case "w":
+      userX += stepSize;
+      break;
+    case "a":
+      userY -= stepSize;
+      break;
+    case "s":
+      userX -= stepSize;
+      break;
+    case "d":
+      userY += stepSize;
+      break;
+    default:
+      return; // Ignore other keys
+  }
+  // Update the existing marker's position (don't create a new marker)
+  playerMarker.setLatLng([userX, userY]);
+  // Center map on new position
+  map.setView([userX, userY], GAMEPLAY_ZOOM_LEVEL);
+});

@@ -20,8 +20,12 @@ D3.a
 -draw the player's location on the map [x] (made it miku)
 -draw a rectangle representing one cell on the map[x]
 -use loops to draw a whole grid of cells on the map[x]
--put numbers into each of the grids using a randomizer (luck function) []
--can click boxes to hold the number it contains in your hand []
--can click other boxes to deposit the number currently in your hand and update the number in the box by adding them together []
+-put numbers into each of the grids using a randomizer (luck function) [x]
+-can click boxes to hold the number it contains in your hand [x]
+-can click other boxes to deposit the number currently in your hand and update the number in the box by adding them together [x]
+-if box value is 0 you may put your current holding into it [x]
 
--add wasd keys to move character []
+D3.b
+-add wasd keys to move character [x]
+-have map camera move with character []
+-add radius to character and have boxes outside of radius turn grey/red []
