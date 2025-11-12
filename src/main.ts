@@ -61,55 +61,55 @@ leaflet.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 }).addTo(map);
 
 map.setMaxBounds(map.getBounds());
-//
-//
-////using a miku png from https://ena.our-dogs.info/facts-pin.html
-//const mikuIcon = leaflet.icon({
-//  iconUrl: miku,
-//  iconSize: [56, 56], // size of the icon
-//  iconAnchor: [16, 32], // point of the icon which will correspond to marker's location
-//  popupAnchor: [0, -32], // point from which the popup should open relative to the iconAnchor
-//});
-//
-//function spawnCache(x: number, y: number) {
-//  const origin = ORIGIN_POS;
-//  const bounds = leaflet.latLngBounds([
-//    [origin.lat + x * TILE_DEGREES, origin.lng + y * TILE_DEGREES],
-//    [origin.lat + (x + 1) * TILE_DEGREES, origin.lng + (y + 1) * TILE_DEGREES],
-//  ]);
-//
-//  const rect = leaflet.rectangle(bounds);
-//  rect.addTo(map);
-//
-//  rect.bindPopup(() => {
-//    let pointValue = Math.floor(luck([x, y, "initialValue"].toString()) * 100);
-//
-//    const popupDiv = document.createElement("div");
-//    popupDiv.innerHTML = `
-//      <div>There is a cache here at "${x},${y}". It has value <span id ="value">${pointValue}</span?.</div>
-//      <button id="poke">poke</button>`;
-//
-//    popupDiv
-//    .querySelector<HTMLButtonElement>("#poke")!
-//    .addEventListener("click", () => {
-//      pointValue = Math.floor(luck([x, y, Date.now().toString()].toString()) * 100);
-//      const valueSpan = popupDiv.querySelector<HTMLSpanElement>("#value")!;
-//      valueSpan.textContent = pointValue.toString();
-//    });
-//
-//    return popupDiv;
-//  })
-//}
-//
-//for (let i = -GAME_SIZE; i < GAME_SIZE; i++) {
-//  for (let j = -GAME_SIZE; j < GAME_SIZE; j++) {
-//    if (luck([i, j].toString()) < CACHE_SPAWN_PROBABILITY) {
-//      spawnCache(i, j);
-//    }
-//  }
-//}
-////Adding a marker to the map at the user's position
-//leaflet.marker([userX, userY], { icon: mikuIcon }).addTo(map);
+
+
+//using a miku png from https://ena.our-dogs.info/facts-pin.html
+const mikuIcon = leaflet.icon({
+  iconUrl: miku,
+  iconSize: [56, 56], // size of the icon
+  iconAnchor: [16, 32], // point of the icon which will correspond to marker's location
+  popupAnchor: [0, -32], // point from which the popup should open relative to the iconAnchor
+});
+
+function spawnCache(x: number, y: number) {
+  const origin = ORIGIN_POS;
+  const bounds = leaflet.latLngBounds([
+    [origin.lat + x * TILE_DEGREES, origin.lng + y * TILE_DEGREES],
+    [origin.lat + (x + 1) * TILE_DEGREES, origin.lng + (y + 1) * TILE_DEGREES],
+  ]);
+
+  const rect = leaflet.rectangle(bounds);
+  rect.addTo(map);
+
+  rect.bindPopup(() => {
+    let pointValue = Math.floor(luck([x, y, "initialValue"].toString()) * 100);
+
+    const popupDiv = document.createElement("div");
+    popupDiv.innerHTML = `
+      <div>There is a cache here at "${x},${y}". It has value <span id ="value">${pointValue}</span?.</div>
+      <button id="poke">poke</button>`;
+
+    popupDiv
+    .querySelector<HTMLButtonElement>("#poke")!
+    .addEventListener("click", () => {
+      pointValue = Math.floor(luck([x, y, Date.now().toString()].toString()) * 100);
+      const valueSpan = popupDiv.querySelector<HTMLSpanElement>("#value")!;
+      valueSpan.textContent = pointValue.toString();
+    });
+
+    return popupDiv;
+  })
+}
+
+for (let i = -GAME_SIZE; i < GAME_SIZE; i++) {
+  for (let j = -GAME_SIZE; j < GAME_SIZE; j++) {
+    if (luck([i, j].toString()) < CACHE_SPAWN_PROBABILITY) {
+      spawnCache(i, j);
+    }
+  }
+}
+//Adding a marker to the map at the user's position
+leaflet.marker([userX, userY], { icon: mikuIcon }).addTo(map);
 //
 ////wasd keys to move
 //
