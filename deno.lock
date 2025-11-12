@@ -404,6 +404,12 @@
       "bin": true
     }
   },
+  "redirects": {
+    "https://esm.sh/@types/leaflet@~1.9.16/index.d.ts": "https://esm.sh/@types/leaflet@1.9.21/index.d.ts"
+  },
+  "remote": {
+    "https://esm.sh/leaflet@1.9.4": "bd5c32d7ef6148e6fe49e220673e93332223105e1721c26f4e7b5ea9019ffc54"
+  },
   "workspace": {
     "dependencies": [
       "npm:@types/leaflet@^1.9.21",

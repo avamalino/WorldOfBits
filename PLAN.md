@@ -15,11 +15,13 @@ D3.a
 
 Steps
 D3.a
--delete everthing in main.ts []
--put a basic leaflet map on the screen []
--draw the player's location on the map []
--draw a rectangle representing one cell on the map[]
--use loops to draw a whole grid of cells on the map[]
+-delete everthing in main.ts [x]
+-put a basic leaflet map on the screen [x]
+-draw the player's location on the map [x] (made it miku)
+-draw a rectangle representing one cell on the map[x]
+-use loops to draw a whole grid of cells on the map[x]
 -put numbers into each of the grids using a randomizer (luck function) []
 -can click boxes to hold the number it contains in your hand []
 -can click other boxes to deposit the number currently in your hand and update the number in the box by adding them together []
+
+-add wasd keys to move character []
