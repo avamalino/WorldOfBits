@@ -36,7 +36,7 @@ document.body.appendChild(statusDiv);
 //startingPos is in kona hawaii
 const startingPos = { x: 19.63, y: -155.99 };
 const ORIGIN_POS = leaflet.latLng(startingPos.x, startingPos.y);
-const GAME_SIZE = 8;
+const GAME_SIZE = 10;
 const CACHE_SPAWN_PROBABILITY = 0.1;
 const TILE_DEGREES = 0.0001; // approx degrees covered by one tile at zoom level 19
 const GAMEPLAY_ZOOM_LEVEL = 19;
@@ -50,6 +50,7 @@ const map = leaflet.map(mapDiv, {
   minZoom: GAMEPLAY_ZOOM_LEVEL,
   maxZoom: GAMEPLAY_ZOOM_LEVEL,
   zoomControl: false,
+  dragging: false,
   scrollWheelZoom: false,
 }).setView([startingPos.x, startingPos.y], 13);
 
@@ -60,13 +61,13 @@ leaflet.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 }).addTo(map);
 
-map.setMaxBounds(map.getBounds());
+//map.setMaxBounds(map.getBounds());
 
 //using a miku png from https://ena.our-dogs.info/facts-pin.html
 const mikuIcon = leaflet.icon({
   iconUrl: miku,
   iconSize: [56, 56], // size of the icon
-  iconAnchor: [16, 16], // point of the icon which will correspond to marker's location
+  iconAnchor: [32, 32], // point of the icon which will correspond to marker's location
   popupAnchor: [0, -32], // point from which the popup should open relative to the iconAnchor
 });
 
@@ -77,12 +78,12 @@ interface Cache {
   label: leaflet.Marker;
 }
 
-const caches: Cache[] = [];
-
+//const caches: Cache[] = [];  //old
+const caches = new Map<string, Cache>();
 let playerHolding: number = 0;
-let selectedCache: [number, number] | null = null; //x,y of the current cache
-
+//let selectedCache: [number, number] | null = null; //x,y of the current cache
 const origin = ORIGIN_POS;
+//
 function spawnCache(x: number, y: number) {
   const bounds = leaflet.latLngBounds([
     [origin.lat + x * TILE_DEGREES, origin.lng + y * TILE_DEGREES],
@@ -91,8 +92,9 @@ function spawnCache(x: number, y: number) {
   const center = bounds.getCenter();
   const value = 1 + Math.floor(luck([x, y].toString()) * 100) % 2; //get either #1 or 2
 
-  const rect = leaflet.rectangle(bounds, { color: "blue", fillOpacity: 0.5 });
-  const label = leaflet.marker(center, {
+  const key = `${x},${y}`; //key to identify each cache in map
+  const rect = leaflet.rectangle(bounds, { color: "blue", fillOpacity: 0.5 }); //blue rects
+  const label = leaflet.marker(center, { //numbers within the rects
     icon: leaflet.divIcon({
       className: "label",
       html: String(value), //get either number 1 or 2
@@ -101,17 +103,21 @@ function spawnCache(x: number, y: number) {
     }),
   });
 
-  rect.addTo(map);
-  label.addTo(map);
-
-  const cache: Cache = { pos: [x, y], value, rect, label };
-  caches.push(cache);
-
   rect.on("click", () => {
-    const cache = caches.find((c) => c.pos[0] === x && c.pos[1] === y);
+    //const cache = caches.find((c) => c.pos[0] === x && c.pos[1] === y); //old
+    const cacheCenter = leaflet.latLng(
+      origin.lat + (x + 0.5) * TILE_DEGREES,
+      origin.lng + (y + 0.5) * TILE_DEGREES,
+    );
+    if (!isWithinRadius(cacheCenter)) {
+      alert("Too far away!");
+      return;
+    }
+    const cache = caches.get(key);
     if (!cache) return;
     if (playerHolding === 0) {
       playerHolding = cache.value;
+
       cache.value = 0;
     } else {
       if (cache.value === 0) {
@@ -136,20 +142,68 @@ function spawnCache(x: number, y: number) {
 
     statusDiv.innerHTML = `Points: ${playerHolding}`;
   });
+  const cache: Cache = { pos: [x, y], value, rect, label };
+  caches.set(key, cache);
+  rect.addTo(map);
+  label.addTo(map);
 }
 
-for (let i = -GAME_SIZE; i < GAME_SIZE; i++) {
-  for (let j = -GAME_SIZE; j < GAME_SIZE; j++) {
-    if (luck([i, j].toString()) < CACHE_SPAWN_PROBABILITY) {
-      spawnCache(i, j);
+const VIEW_RADIUS = 10;
+function updateVisibleCaches() {
+  const center = map.getCenter();
+  const tileX = Math.floor((center.lat - origin.lat) / TILE_DEGREES);
+  const tileY = Math.floor((center.lng - origin.lng) / TILE_DEGREES);
+
+  const nextCaches = new Set<string>();
+
+  for (let dx = -VIEW_RADIUS; dx <= VIEW_RADIUS; dx++) {
+    for (let dy = -VIEW_RADIUS; dy <= VIEW_RADIUS; dy++) {
+      const key = `${tileX + dx},${tileY + dy}`;
+      nextCaches.add(key);
+
+      if (!caches.has(key) && luck(key) < CACHE_SPAWN_PROBABILITY) {
+        spawnCache(tileX + dx, tileY + dy);
+      }
+    }
+  }
+
+  for (const [key, cache] of caches) {
+    updateCacheAppearance(cache);
+    if (!nextCaches.has(key)) {
+      cache.rect.remove();
+      cache.label.remove();
+      caches.delete(key);
     }
   }
 }
+
+function isWithinRadius(cachePos: leaflet.LatLng): boolean {
+  const playerPoint = leaflet.latLng(userX, userY);
+  const distance = playerPoint.distanceTo(cachePos);
+  return distance < 60;
+}
+
+function updateCacheAppearance(cache: Cache) {
+  //const key = `${cache.pos[0]},${cache.pos[1]}`;
+  const centerX = origin.lat + (cache.pos[0] + 0.5) * TILE_DEGREES;
+  const centerY = origin.lng + (cache.pos[1] + 0.5) * TILE_DEGREES;
+  const cacheCenter = leaflet.latLng(centerX, centerY);
+  if (isWithinRadius(cacheCenter)) {
+    cache.rect.setStyle({ color: "blue" });
+  } else {
+    cache.rect.setStyle({ color: "grey" });
+  }
+}
+
+map.on("moveend", updateVisibleCaches);
+updateVisibleCaches();
 
 //Adding a marker to the map at the user's position
 let playerMarker = leaflet.marker([userX, userY], { icon: mikuIcon }).addTo(
   map,
 );
+let radiusMarker = leaflet.circle([userX, userY], { radius: 60, fill: false })
+  .addTo(map);
 
 let playerPoints = 0;
 statusDiv.innerHTML = `Points: ${playerPoints}`;
@@ -173,8 +227,12 @@ document.addEventListener("keydown", (event) => {
     default:
       return; // Ignore other keys
   }
+  for (const cache of caches.values()) {
+    updateCacheAppearance(cache);
+  }
   // Update the existing marker's position (don't create a new marker)
   playerMarker.setLatLng([userX, userY]);
+  radiusMarker.setLatLng([userX, userY]);
   // Center map on new position
   map.setView([userX, userY], GAMEPLAY_ZOOM_LEVEL);
 });

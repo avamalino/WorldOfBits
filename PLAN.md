@@ -27,5 +27,9 @@ D3.a
 
 D3.b
 -add wasd keys to move character [x]
--have map camera move with character []
--add radius to character and have boxes outside of radius turn grey/red []
+-have map camera move with character [x]
+-add radius to character and have boxes outside of radius turn grey/red [x]
+-Only have boxes within the radius be accessible to the player [x]
+-When outside of the radius, remove the cache from the array (make this easier later, just add it to another array that will hold value and stuff but not appear on screen)(map ;)) [x]
+-when adding together tokens, their value increases [x]
+-victory threshold (2048 if i wanna stick to the normal game, or 256 if i wanna make it simple)[]
