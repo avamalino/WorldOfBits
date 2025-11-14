@@ -11,6 +11,7 @@ import "./_leafletWorkaround.ts"; // fixes for missing Leaflet images
 // Import our luck function
 import luck from "./_luck.ts";
 
+import catGif from "./cat-icegif-9.gif";
 import miku from "./miku.png";
 // Create basic UI elements via a small HTML template so layout and CSS
 // take effect predictably.
@@ -40,6 +41,19 @@ const GAME_SIZE = 10;
 const CACHE_SPAWN_PROBABILITY = 0.1;
 const TILE_DEGREES = 0.0001; // approx degrees covered by one tile at zoom level 19
 const GAMEPLAY_ZOOM_LEVEL = 19;
+
+const achievementGif = document.createElement("img");
+achievementGif.src = catGif; // replace with actual path
+achievementGif.style.position = "absolute";
+achievementGif.style.top = "50%";
+achievementGif.style.left = "50%";
+achievementGif.style.width = "300px"; // adjust size
+achievementGif.style.height = "auto";
+achievementGif.style.transform = "translate(-50%, -50%)";
+achievementGif.style.zIndex = "1000";
+achievementGif.style.display = "none"; // hidden by default
+achievementGif.style.pointerEvents = "none"; // don't block map interaction
+document.body.appendChild(achievementGif);
 //user positions reflect the starting position until changed
 let userX = startingPos.x;
 let userY = startingPos.y;
@@ -81,6 +95,7 @@ interface Cache {
 //const caches: Cache[] = [];  //old
 const caches = new Map<string, Cache>();
 let playerHolding: number = 0;
+let highestValue: number = 0;
 //let selectedCache: [number, number] | null = null; //x,y of the current cache
 const origin = ORIGIN_POS;
 //
@@ -104,6 +119,9 @@ function spawnCache(x: number, y: number) {
   });
 
   rect.on("click", () => {
+    if (playerHolding > highestValue) {
+      highestValue = playerHolding;
+    }
     //const cache = caches.find((c) => c.pos[0] === x && c.pos[1] === y); //old
     const cacheCenter = leaflet.latLng(
       origin.lat + (x + 0.5) * TILE_DEGREES,
@@ -128,6 +146,10 @@ function spawnCache(x: number, y: number) {
       } else {
         cache.value += playerHolding;
         playerHolding = 0;
+        if (cache.value > highestValue) {
+          highestValue = cache.value;
+          checkAchievement();
+        }
       }
     }
 
@@ -140,12 +162,22 @@ function spawnCache(x: number, y: number) {
       }),
     );
 
-    statusDiv.innerHTML = `Points: ${playerHolding}`;
+    statusDiv.innerHTML =
+      `Points: ${playerHolding}, Highest Value: ${highestValue}`;
   });
   const cache: Cache = { pos: [x, y], value, rect, label };
   caches.set(key, cache);
   rect.addTo(map);
   label.addTo(map);
+}
+
+function checkAchievement() {
+  if (highestValue === 64) {
+    achievementGif.style.display = "block";
+    setTimeout(() => {
+      achievementGif.style.display = "none";
+    }, 5000);
+  }
 }
 
 const VIEW_RADIUS = 10;
@@ -202,11 +234,11 @@ updateVisibleCaches();
 let playerMarker = leaflet.marker([userX, userY], { icon: mikuIcon }).addTo(
   map,
 );
-let radiusMarker = leaflet.circle([userX, userY], { radius: 60, fill: false })
-  .addTo(map);
+//let radiusMarker = leaflet.circle([userX, userY], { radius: 60, fill: false })
+//  .addTo(map);
 
 let playerPoints = 0;
-statusDiv.innerHTML = `Points: ${playerPoints}`;
+statusDiv.innerHTML = `Points: ${playerPoints}, Highest Value: ${highestValue}`;
 
 //wasd keys to move
 document.addEventListener("keydown", (event) => {
@@ -232,7 +264,7 @@ document.addEventListener("keydown", (event) => {
   }
   // Update the existing marker's position (don't create a new marker)
   playerMarker.setLatLng([userX, userY]);
-  radiusMarker.setLatLng([userX, userY]);
+  //radiusMarker.setLatLng([userX, userY]);
   // Center map on new position
   map.setView([userX, userY], GAMEPLAY_ZOOM_LEVEL);
 });
