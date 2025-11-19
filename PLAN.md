@@ -33,3 +33,7 @@ D3.b
 -When outside of the radius, remove the cache from the array (make this easier later, just add it to another array that will hold value and stuff but not appear on screen)(map) [x]
 -when adding together tokens, their value increases [x]
 -victory threshold 2048 if i wanna stick to the normal game, or 256 if i wanna make it simple[x]
+
+D3.c
+-implement a dynamic memory system that records position and current values of cells [x]
+-when moving out of a certain visible radius, don't display the cell but make sure the value of that cell is remembered for when you go back (memento pattern) [x]

@@ -100,15 +100,19 @@ let highestValue: number = 0;
 const origin = ORIGIN_POS;
 //
 function spawnCache(x: number, y: number) {
+  const key = `${x},${y}`; //key to identify each cache in map
+  if (caches.has(key)) return;
+
   const bounds = leaflet.latLngBounds([
     [origin.lat + x * TILE_DEGREES, origin.lng + y * TILE_DEGREES],
     [origin.lat + (x + 1) * TILE_DEGREES, origin.lng + (y + 1) * TILE_DEGREES],
   ]);
+
   const center = bounds.getCenter();
   const value = 1 + Math.floor(luck([x, y].toString()) * 100) % 2; //get either #1 or 2
 
-  const key = `${x},${y}`; //key to identify each cache in map
   const rect = leaflet.rectangle(bounds, { color: "blue", fillOpacity: 0.5 }); //blue rects
+
   const label = leaflet.marker(center, { //numbers within the rects
     icon: leaflet.divIcon({
       className: "label",
@@ -131,11 +135,12 @@ function spawnCache(x: number, y: number) {
       alert("Too far away!");
       return;
     }
+
     const cache = caches.get(key);
     if (!cache) return;
+
     if (playerHolding === 0) {
       playerHolding = cache.value;
-
       cache.value = 0;
     } else {
       if (cache.value === 0) {
@@ -169,6 +174,7 @@ function spawnCache(x: number, y: number) {
   caches.set(key, cache);
   rect.addTo(map);
   label.addTo(map);
+  updateCacheAppearance(cache);
 }
 
 function checkAchievement() {
@@ -181,11 +187,13 @@ function checkAchievement() {
 }
 
 const VIEW_RADIUS = 10;
+const renderedCaches = new Set<string>();
+
 function updateVisibleCaches() {
   const center = map.getCenter();
   const tileX = Math.floor((center.lat - origin.lat) / TILE_DEGREES);
   const tileY = Math.floor((center.lng - origin.lng) / TILE_DEGREES);
-
+  //used to hold next caches that should be rendered
   const nextCaches = new Set<string>();
 
   for (let dx = -VIEW_RADIUS; dx <= VIEW_RADIUS; dx++) {
@@ -193,19 +201,31 @@ function updateVisibleCaches() {
       const key = `${tileX + dx},${tileY + dy}`;
       nextCaches.add(key);
 
-      if (!caches.has(key) && luck(key) < CACHE_SPAWN_PROBABILITY) {
+      //if key is within current caches, render it, otherwise its in old caches
+      //so respawn it and its value back onto map
+      if (caches.has(key)) {
+        const cache = caches.get(key);
+        if (!renderedCaches.has(key)) {
+          cache?.rect.addTo(map);
+          cache?.label.addTo(map);
+        }
+      } //if its not in caches at all then spawn a new cache
+      else if (luck(key) < CACHE_SPAWN_PROBABILITY) {
         spawnCache(tileX + dx, tileY + dy);
       }
     }
   }
-
-  for (const [key, cache] of caches) {
-    updateCacheAppearance(cache);
+  //for each key in old caches if its not in the next cahces
+  for (const key of renderedCaches) {
     if (!nextCaches.has(key)) {
-      cache.rect.remove();
-      cache.label.remove();
-      caches.delete(key);
+      const cache = caches.get(key);
+      cache?.rect.remove();
+      cache?.label.remove();
     }
+  }
+  renderedCaches.clear();
+  for (const key of nextCaches) {
+    renderedCaches.add(key);
   }
 }
 
@@ -234,8 +254,6 @@ updateVisibleCaches();
 let playerMarker = leaflet.marker([userX, userY], { icon: mikuIcon }).addTo(
   map,
 );
-//let radiusMarker = leaflet.circle([userX, userY], { radius: 60, fill: false })
-//  .addTo(map);
 
 let playerPoints = 0;
 statusDiv.innerHTML = `Points: ${playerPoints}, Highest Value: ${highestValue}`;
@@ -264,7 +282,6 @@ document.addEventListener("keydown", (event) => {
   }
   // Update the existing marker's position (don't create a new marker)
   playerMarker.setLatLng([userX, userY]);
-  //radiusMarker.setLatLng([userX, userY]);
   // Center map on new position
   map.setView([userX, userY], GAMEPLAY_ZOOM_LEVEL);
 });
