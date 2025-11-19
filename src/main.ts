@@ -168,7 +168,7 @@ function spawnCache(x: number, y: number) {
     );
 
     statusDiv.innerHTML =
-      `Points: ${playerHolding}, Highest Value: ${highestValue}`;
+      `Points: ${playerHolding}, Highest Value: ${highestValue}, Move with WASD`;
   });
   const cache: Cache = { pos: [x, y], value, rect, label };
   caches.set(key, cache);
@@ -256,7 +256,8 @@ let playerMarker = leaflet.marker([userX, userY], { icon: mikuIcon }).addTo(
 );
 
 let playerPoints = 0;
-statusDiv.innerHTML = `Points: ${playerPoints}, Highest Value: ${highestValue}`;
+statusDiv.innerHTML =
+  `Points: ${playerPoints}, Highest Value: ${highestValue}, Move with WASD`;
 
 //wasd keys to move
 document.addEventListener("keydown", (event) => {
