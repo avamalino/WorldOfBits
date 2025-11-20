@@ -1,6 +1,6 @@
 // deno-lint-ignore-file
 // @deno-types="npm:@types/leaflet"
-//import leaflet from "leaflet";
+
 import * as leaflet from "https://esm.sh/leaflet@1.9.4";
 // Leaflet CSS is loaded via a <link> in index.html when running under Deno.
 import "./style.css"; // student-controlled page style
@@ -75,8 +75,6 @@ leaflet.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 }).addTo(map);
 
-//map.setMaxBounds(map.getBounds());
-
 //using a miku png from https://ena.our-dogs.info/facts-pin.html
 const mikuIcon = leaflet.icon({
   iconUrl: miku,
@@ -96,9 +94,8 @@ interface Cache {
 const caches = new Map<string, Cache>();
 let playerHolding: number = 0;
 let highestValue: number = 0;
-//let selectedCache: [number, number] | null = null; //x,y of the current cache
 const origin = ORIGIN_POS;
-//
+
 function spawnCache(x: number, y: number) {
   const key = `${x},${y}`; //key to identify each cache in map
   if (caches.has(key)) return;
@@ -126,7 +123,6 @@ function spawnCache(x: number, y: number) {
     if (playerHolding > highestValue) {
       highestValue = playerHolding;
     }
-    //const cache = caches.find((c) => c.pos[0] === x && c.pos[1] === y); //old
     const cacheCenter = leaflet.latLng(
       origin.lat + (x + 0.5) * TILE_DEGREES,
       origin.lng + (y + 0.5) * TILE_DEGREES,
@@ -236,7 +232,6 @@ function isWithinRadius(cachePos: leaflet.LatLng): boolean {
 }
 
 function updateCacheAppearance(cache: Cache) {
-  //const key = `${cache.pos[0]},${cache.pos[1]}`;
   const centerX = origin.lat + (cache.pos[0] + 0.5) * TILE_DEGREES;
   const centerY = origin.lng + (cache.pos[1] + 0.5) * TILE_DEGREES;
   const cacheCenter = leaflet.latLng(centerX, centerY);
