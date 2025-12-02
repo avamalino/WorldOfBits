@@ -37,3 +37,11 @@ D3.b
 D3.c
 -implement a dynamic memory system that records position and current values of cells [x]
 -when moving out of a certain visible radius, don't display the cell but make sure the value of that cell is remembered for when you go back (memento pattern) [x]
+
+d3.d
+-implement browser geolocation API to move character around [x]
+-add a toggle between geolocation and WASD keys to move around [x]
+-implementing the Facade design pattern [x]
+-utilizing browser localStorage API [x]
+-updated user location so it just starts wherever you are located, especially for geo mode [x]
+-add restart button that resets game data []
