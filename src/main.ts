@@ -268,6 +268,8 @@ function resetGame() {
 
   // Reset movement to default (WASD)
   movement.setController(new WASDMovementController());
+
+  //Implementing the memento pattern here along with the saveGameState and loadGameState functions
   gameState = {
     playerPos: [userX, userY],
     playerHolding: 0,
