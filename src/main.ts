@@ -129,6 +129,62 @@ controlDiv.appendChild(resetBtn);
 // --- Wire the Reset Button ---
 resetBtn.addEventListener("click", resetGame);
 
+const controlsContainer = document.createElement("div");
+controlsContainer.id = "wasdControls";
+controlsContainer.style.cssText = `
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 50px);
+  grid-template-rows: repeat(3, 50px);
+  gap: 5px;
+  z-index: 1000;
+`;
+
+// Buttons: W, A, S, D
+const btnUp = document.createElement("button");
+btnUp.textContent = "W";
+const btnLeft = document.createElement("button");
+btnLeft.textContent = "A";
+const btnDown = document.createElement("button");
+btnDown.textContent = "S";
+const btnRight = document.createElement("button");
+btnRight.textContent = "D";
+
+// Arrange buttons in a grid
+controlsContainer.appendChild(document.createElement("div")); // empty
+controlsContainer.appendChild(btnUp);
+controlsContainer.appendChild(document.createElement("div")); // empty
+controlsContainer.appendChild(btnLeft);
+controlsContainer.appendChild(btnDown);
+controlsContainer.appendChild(btnRight);
+controlsContainer.appendChild(document.createElement("div")); // empty
+controlsContainer.appendChild(document.createElement("div")); // empty
+controlsContainer.appendChild(document.createElement("div")); // empty
+
+document.body.appendChild(controlsContainer);
+
+// Move speed (same as keyboard)
+const BUTTON_SPEED = 5;
+
+btnUp.addEventListener(
+  "click",
+  () => movePlayer({ dx: TILE_DEGREES * BUTTON_SPEED, dy: 0 }),
+);
+btnDown.addEventListener(
+  "click",
+  () => movePlayer({ dx: -TILE_DEGREES * BUTTON_SPEED, dy: 0 }),
+);
+btnLeft.addEventListener(
+  "click",
+  () => movePlayer({ dx: 0, dy: -TILE_DEGREES * BUTTON_SPEED }),
+);
+btnRight.addEventListener(
+  "click",
+  () => movePlayer({ dx: 0, dy: TILE_DEGREES * BUTTON_SPEED }),
+);
+
 // Movement Facade & Controllers //
 
 interface MovementController {
