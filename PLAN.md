@@ -44,4 +44,4 @@ d3.d
 -implementing the Facade design pattern [x]
 -utilizing browser localStorage API [x]
 -updated user location so it just starts wherever you are located, especially for geo mode [x]
--add restart button that resets game data []
+-add restart button that resets game data [x]
